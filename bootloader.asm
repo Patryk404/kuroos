@@ -22,7 +22,7 @@ handle_one:
     call print
     iret
 
-keyboard_func: 
+keyboard_func: ;keyboard interrupt
     mov si, messagekeyboard 
     call print
     iret
