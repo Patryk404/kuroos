@@ -10,6 +10,23 @@ times 33 db 0
 start:
     start jmp 0x7c0:step2 
 
+handle_zero:
+    mov ah,0eh
+    mov al,'A'
+    mov bx,0x00
+    int 0x10
+    iret
+
+handle_one:
+    mov si, message2
+    call print
+    iret
+
+keyboard_func: 
+    mov si, messagekeyboard 
+    call print
+    iret
+
 step2: 
     cli 
     mov ax,0x7c0
@@ -19,7 +36,20 @@ step2:
     mov ss,ax 
     mov sp,0x7c00
     sti
+
+    mov word[ss:0x00], handle_zero
+    mov word[ss:0x02], 0x7c0
     
+    mov word[ss:0x04], handle_one
+    mov word[ss:0x06], 0x7c0
+
+    mov word[ss:0x0024], keyboard_func
+    mov word[ss:0x0026], 0x7c0
+
+    int 0
+
+    int 1
+
     mov si,message
     call print
     jmp $
@@ -41,6 +71,8 @@ print_char:
     ret
 
 message: db 'Hello World!!!', 0
+message2: db 'Interrupt lol', 0 
+messagekeyboard: db 'Pressed something',0
 
 times 510-($ - $$) db 0
 dw 0xAA55
