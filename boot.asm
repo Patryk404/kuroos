@@ -1,92 +1,72 @@
-ORG 0
+ORG 0x7C00
 BITS 16
 
+CODE_SEG equ gdt_code-gdt_start
+DATA_SEG equ gdt_data-gdt_start
+
 _start:
-    jmp short start
+    jmp short step2
     nop 
 
 times 33 db 0
 
-start:
-    start jmp 0x7c0:step2 
-
-handle_zero:
-    mov ah,0eh
-    mov al,'A'
-    mov bx,0x00
-    int 0x10
-    iret
-
-handle_one:
-    mov si, message2
-    call print
-    iret
-
-keyboard_func: ;keyboard interrupt
-    mov si, messagekeyboard 
-    call print
-    iret
 
 step2: 
     cli 
-    mov ax,0x7c0
+    mov ax,0
     mov ds,ax
     mov es,ax
-    mov ax,0x00
     mov ss,ax 
     mov sp,0x7c00
     sti
 
-    mov word[ss:0x00], handle_zero
-    mov word[ss:0x02], 0x7c0
-    
-    mov word[ss:0x04], handle_one
-    mov word[ss:0x06], 0x7c0
+protected_mode:
+    cli
+    lgdt [gdt_descriptor]
+    mov eax, cr0 
+    or al, 1       ; set PE (Protection Enable) bit in CR0 (Control Register 0)
+    mov cr0, eax
+    jmp load32 ; 8 + load32 CODE_SEG:load32 this make like codesegment set to 8 but i am not sure what happens when we set it to just 0 lol
 
-    mov word[ss:0x0024], keyboard_func
-    mov word[ss:0x0026], 0x7c0
     
-read_from_hard_disk: ; buffer is store in es:bx and basically if you want to print it you need to set appropriately ds and si because ds:si 
-    mov ax, 0x7c0
-    mov ds,ax
-    mov es,ax
-    mov ah,2
-    mov al,1
-    mov ch,0
-    mov cl,2
-    mov dh,0
-    mov bx,buffer
-    int 0x13
-    jnc read_buffer 
-error:
-    mov si,messageError
-    call print
-read_buffer:
-    mov si,buffer
-    call print
+gdt_start:
+gdt_null:
+    dd 0x0
+    dd 0x0
+gdt_code: ;; offset 0x08
+    dw 0xffff
+    dw 0
+    db 0
+    db 0x9a
+    db 11001111b
+    db 0
+    
+gdt_data:
+    dw 0xffff
+    dw 0
+    db 0 
+    db 0x92 
+    db 11001111b
+    db 0 
+
+gdt_end:
+gdt_descriptor:
+    dw gdt_end - gdt_start-1 
+    dd gdt_start
+
+[BITS 32]
+load32: 
+    mov ax, DATA_SEG ; offset 10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax 
+    mov gs, ax 
+    mov ss, ax
+    mov ax, CODE_SEG ; offset 8
+    mov ebp,0x00200000
+    mov esp,ebp
     jmp $
 
-print:
-    mov bx, 0
-.loop:
-    lodsb
-    cmp al, 0
-    je .done
-    call print_char
-    jmp .loop
-.done:
-    ret
-
-print_char:
-    mov ah, 0eh
-    int 0x10
-    ret
-
-message: db 'Hello World!!!', 0
-message2: db 'Interrupt lol', 0 
-messagekeyboard: db 'Pressed something',0
-messageError: db 'Nie wierze czasami',0
 times 510-($ - $$) db 0
 dw 0xAA55
-buffer:
 
