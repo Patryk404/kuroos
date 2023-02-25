@@ -45,12 +45,24 @@ step2:
 
     mov word[ss:0x0024], keyboard_func
     mov word[ss:0x0026], 0x7c0
-
-    int 0
-
-    int 1
-
-    mov si,message
+    
+read_from_hard_disk: ; buffer is store in es:bx and basically if you want to print it you need to set appropriately ds and si because ds:si 
+    mov ax, 0x7c0
+    mov ds,ax
+    mov es,ax
+    mov ah,2
+    mov al,1
+    mov ch,0
+    mov cl,2
+    mov dh,0
+    mov bx,buffer
+    int 0x13
+    jnc read_buffer 
+error:
+    mov si,messageError
+    call print
+read_buffer:
+    mov si,buffer
     call print
     jmp $
 
@@ -73,6 +85,8 @@ print_char:
 message: db 'Hello World!!!', 0
 message2: db 'Interrupt lol', 0 
 messagekeyboard: db 'Pressed something',0
-
+messageError: db 'Nie wierze czasami',0
 times 510-($ - $$) db 0
 dw 0xAA55
+buffer:
+
