@@ -32,7 +32,7 @@ protected_mode:
 
 
 ;=============================================================================
-; ATA read sectors (LBA mode) 
+; ATA read sectors (LBA mode)  stole it from osdev
 ;
 ; @param EAX Logical Block Address of sector
 ; @param CL  Number of sectors to read
@@ -131,7 +131,11 @@ load32:
 
     call ata_lba_read
 
-    jmp 0x0100000 ; CODE_SEGMENT Still here? 
+    jmp CODE_SEG:0x0100000 ; CODE_SEGMENT Still here? 
+    ;When in protected mode we have selectors that replace the segmentation model found in real mode. The selector is specified in the GDT, so the rules in the GDT explain how we access memory on a selector.
+    ; We are not jumping to segment 0x8h because that is now a selector, it does not follow the segmentation model found in real mode as we are in protected mode now. We have many lectures explaining the whole process so do not worry just keep following the course.
+
+
 
 
 times 510-($ - $$) db 0
