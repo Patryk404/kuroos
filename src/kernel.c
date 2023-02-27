@@ -25,19 +25,7 @@ void clear_screen()
 
 void print(const char *string, int length)
 {
-    uint8_t *screen_ptr = (uint8_t *)VGA_DISPLAY_ADDRESS;
-    // screen_ptr[0] = 'a';
-    // screen_ptr[1] = 2;
-    screen_ptr[0] = *string;
-    screen_ptr[1] = 2;
-    // int screen_ptr_counter = 0;
-    for (int i = 0; i < 12; i++)
-    {
-        // screen_ptr[screen_ptr_counter] = (uint8_t)string[i];
-        // screen_ptr_counter++;
-        // screen_ptr[screen_ptr_counter] = 2;
-        // screen_ptr_counter++;
-    }
+    put_char
 }
 
 void put_char(char c, char colour)
